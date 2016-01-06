@@ -55,4 +55,14 @@
   .activeadmin-translate .ui-tabs-hide {
     display: none !important;
   }
+
+  .activeadmin-translate-input fieldset > ol > li {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+  }
 }

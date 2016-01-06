@@ -27,6 +27,57 @@ module ActiveAdmin
         html
       end
 
+      # Create raw inputs for each language
+      # A simple wrapper around basic form input method
+      #
+      # @param [Symbol] method
+      # @param [Hash] options
+      def translate_input(method, options = {})
+        html = if self.respond_to?(:form_buffers)
+          form_buffers.last
+        else
+          "".html_safe
+        end
+
+        template.assign(has_many_block: true)
+
+        html << template.content_tag(:li, class: 'activeadmin-translate-input') do
+          template.content_tag :fieldset, class: 'has_many_fields' do
+            template.content_tag(:ol) do
+              out = []
+
+              human_attr = human_attribute_name(method)
+
+              out << ::I18n.available_locales.map do |locale|
+
+                translation = object.translation_for(locale)
+                translation.instance_variable_set(:@errors, object.errors) if locale == I18n.default_locale
+
+                fields_for [:translations, translation] do |f|
+                  unless has_locale_field
+                    f.input :locale, :as => :hidden
+                  end
+
+                  opts = options.dup
+                  opts[:label] = "#{human_attr}: #{locale_label locale}"
+
+                  f.input method, opts
+                end
+              end
+
+              self.has_locale_field = true
+
+              out.join.html_safe
+            end
+
+          end
+        end
+
+        template.concat(html) if template.output_buffer
+
+        html
+      end
+
       protected
 
       # Create the script to activate the tabs on insertion.
@@ -83,6 +134,47 @@ module ActiveAdmin
       #
       def translate_id
         "#{ self.object.class.to_s.underscore.dasherize }-#{ self.object.object_id }"
+      end
+
+
+      # Flag to prevent double render for locale hidden field
+      #
+      # @return [Boolean]
+      #
+      def has_locale_field
+        @has_locale_field ||= false
+      end
+
+      # Flag to prevent double render for locale hidden field
+      #
+      # @return [Boolean]
+      #
+      def has_locale_field=(value)
+        @has_locale_field = value
+      end
+
+      # Get translation of locale
+      #
+      # @param [String|Symbol] locale
+      #
+      # @return [String]
+      #
+      def locale_label(locale)
+        ::I18n.t("active_admin.translate.#{ locale }")
+      end
+
+      # Get human attribute name for method
+      #
+      # @param [String|Symbol] method
+      #
+      # @return [String]
+      #
+      def human_attribute_name(method)
+        if @object.respond_to?(:human_attribute_name)
+          @object.human_attribute_name(method, default: method.to_s.titleize)
+        else
+          method.to_s.titleize
+        end
       end
 
     end

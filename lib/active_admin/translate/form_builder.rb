@@ -53,7 +53,7 @@ module ActiveAdmin
                 translation = object.translation_for(locale)
                 translation.instance_variable_set(:@errors, object.errors) if locale == I18n.default_locale
 
-                fields_for [:translations, translation] do |f|
+                fields_for :translations, translation do |f|
                   unless has_locale_field
                     f.input :locale, :as => :hidden
                   end

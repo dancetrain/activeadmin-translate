@@ -48,12 +48,12 @@ module ActiveAdmin
 
               human_attr = human_attribute_name(method)
 
-              out << ::I18n.available_locales.map do |locale|
+              out << ::I18n.available_locales.map.with_index do |locale, index|
 
                 translation = object.translation_for(locale)
                 translation.instance_variable_set(:@errors, object.errors) if locale == I18n.default_locale
 
-                fields_for :translations, translation do |f|
+                fields_for :translations, translation, child_index: index do |f|
                   unless has_locale_field
                     f.input :locale, :as => :hidden
                   end
